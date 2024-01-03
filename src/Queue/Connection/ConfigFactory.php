@@ -1,6 +1,6 @@
 <?php
 
-namespace Vkolya\RabbitMqClient\Queue\Connection;
+namespace VantukhKolya\RabbitMqClient\Queue\Connection;
 
 use Illuminate\Support\Arr;
 use PhpAmqpLib\Connection\AMQPConnectionConfig;
