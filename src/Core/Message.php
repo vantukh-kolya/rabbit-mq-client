@@ -26,10 +26,10 @@ class Message
     }
 
     public function getPayload(
-        int  $maxTries = null,
+        int $maxTries = null,
         bool $failOnTimeout = false,
-        int  $timeout = null): array
-    {
+        int $timeout = null
+    ): array {
         return [
             'uuid' => $this->uuid,
             'displayName' => $this->type,
@@ -43,5 +43,25 @@ class Message
             'data' => $this->data,
             'timestamp' => $this->timestamp
         ];
+    }
+
+    public function getUuid(): string
+    {
+        return $this->uuid;
+    }
+
+    public function getTimestamp(): string
+    {
+        return $this->timestamp;
+    }
+
+    public function getType(): string
+    {
+        return $this->type;
+    }
+
+    public function getData(): array
+    {
+        return $this->data;
     }
 }
