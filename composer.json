@@ -1,0 +1,19 @@
+{
+  "name": "vantukh-kolya/rabbitmq-client",
+  "description": "RabbitMQ client",
+  "license": "MIT",
+  "require": {
+    "php": "^8.0"
+  },
+  "require-dev": {
+    "laravel/framework": "^9.0|^10.0",
+    "webpatser/laravel-uuid": "4.0.2",
+    "php-amqplib/php-amqplib": "3.2"
+  },
+  "autoload": {
+    "psr-4": {
+      "VantukhKolya\\RabbitMqClient\\": "src/"
+    }
+  },
+  "minimum-stability": "stable"
+}
