@@ -5,7 +5,13 @@ namespace VantukhKolya\RabbitMqClient;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Support\ServiceProvider;
-use VantukhKolya\RabbitMQClient\Console\ConsumeCommand;
+use VantukhKolya\RabbitMqClient\Console\ConsumeCommand;
+use VantukhKolya\RabbitMqClient\Console\ExchangeDeclareCommand;
+use VantukhKolya\RabbitMqClient\Console\ExchangeDeleteCommand;
+use VantukhKolya\RabbitMqClient\Console\QueueBindCommand;
+use VantukhKolya\RabbitMqClient\Console\QueueDeclareCommand;
+use VantukhKolya\RabbitMqClient\Console\QueueDeleteCommand;
+use VantukhKolya\RabbitMqClient\Console\QueuePurgeCommand;
 use VantukhKolya\RabbitMqClient\Queue\Connectors\RabbitMQConnector;
 
 class LaravelQueueRabbitMQServiceProvider extends ServiceProvider
@@ -37,17 +43,17 @@ class LaravelQueueRabbitMQServiceProvider extends ServiceProvider
             });
 
             $this->commands([
-                VantukhKolya\RabbitMQClient\Console\ConsumeCommand::class,
+                ConsumeCommand::class,
             ]);
         }
 
         $this->commands([
-            VantukhKolya\RabbitMQClient\Console\ExchangeDeclareCommand::class,
-            VantukhKolya\RabbitMQClient\Console\ExchangeDeleteCommand::class,
-            VantukhKolya\RabbitMQClient\Console\QueueBindCommand::class,
-            VantukhKolya\RabbitMQClient\Console\QueueDeclareCommand::class,
-            VantukhKolya\RabbitMQClient\Console\QueueDeleteCommand::class,
-            VantukhKolya\RabbitMQClient\Console\QueuePurgeCommand::class,
+            ExchangeDeclareCommand::class,
+            ExchangeDeleteCommand::class,
+            QueueBindCommand::class,
+            QueueDeclareCommand::class,
+            QueueDeleteCommand::class,
+            QueuePurgeCommand::class,
         ]);
     }
 
