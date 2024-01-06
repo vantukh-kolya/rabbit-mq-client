@@ -12,6 +12,7 @@ use VantukhKolya\RabbitMqClient\Console\QueueBindCommand;
 use VantukhKolya\RabbitMqClient\Console\QueueDeclareCommand;
 use VantukhKolya\RabbitMqClient\Console\QueueDeleteCommand;
 use VantukhKolya\RabbitMqClient\Console\QueuePurgeCommand;
+use VantukhKolya\RabbitMqClient\Console\RetryCommand;
 use VantukhKolya\RabbitMqClient\Queue\Connectors\RabbitMQConnector;
 
 class LaravelQueueRabbitMQServiceProvider extends ServiceProvider
@@ -54,6 +55,7 @@ class LaravelQueueRabbitMQServiceProvider extends ServiceProvider
             QueueDeclareCommand::class,
             QueueDeleteCommand::class,
             QueuePurgeCommand::class,
+            RetryCommand::class
         ]);
     }
 
