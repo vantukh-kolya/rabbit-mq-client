@@ -3,6 +3,7 @@
 namespace VantukhKolya\RabbitMqClient\Queue;
 
 use Illuminate\Support\Arr;
+use VantukhKolya\RabbitMqClient\Horizon\RabbitMQQueue as HorizonRabbitMQQueue;
 
 class QueueFactory
 {
@@ -13,6 +14,10 @@ class QueueFactory
 
         if (strtolower($worker) == 'default') {
             return new RabbitMQQueue($queueConfig);
+        }
+
+        if (strtolower($worker) == 'horizon') {
+            return new HorizonRabbitMQQueue($queueConfig);
         }
 
         return new $worker($queueConfig);
