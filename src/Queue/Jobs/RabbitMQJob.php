@@ -10,6 +10,7 @@ use Illuminate\Support\Arr;
 use PhpAmqpLib\Exception\AMQPProtocolChannelException;
 use PhpAmqpLib\Message\AMQPMessage;
 use PhpAmqpLib\Wire\AMQPTable;
+use VantukhKolya\RabbitMqClient\Horizon\RabbitMQQueue as HorizonRabbitMQQueue;
 use VantukhKolya\RabbitMqClient\Queue\RabbitMQQueue;
 
 class RabbitMQJob extends Job implements JobContract
@@ -106,6 +107,11 @@ class RabbitMQJob extends Job implements JobContract
         // This is because this is a controlled call by a developer. So the message was handled correct.
         if (!$this->failed) {
             $this->rabbitmq->ack($this);
+        }
+
+        // required for Laravel Horizon
+        if ($this->rabbitmq instanceof HorizonRabbitMQQueue) {
+            $this->rabbitmq->deleteReserved($this->queue, $this);
         }
     }
 
