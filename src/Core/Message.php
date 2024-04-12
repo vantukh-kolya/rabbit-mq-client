@@ -8,12 +8,12 @@ class Message
 {
     private string $uuid;
     private string $timestamp;
-    private string $type;
+    private string $msgType;
     private array $data;
 
-    public function __construct(string $type, array $data = [])
+    public function __construct(string $msgType, array $data = [])
     {
-        $this->type = $type;
+        $this->msgType = $msgType;
         $this->uuid = Uuid::uuid4()->toString();
         $this->data = $data;
         $this->setTimestamp();
@@ -32,8 +32,8 @@ class Message
     ): array {
         return [
             'uuid' => $this->uuid,
-            'displayName' => $this->type,
-            'type' => $this->type,
+            'displayName' => $this->msgType,
+            'msgType' => $this->msgType,
             'job' => null,
             'maxTries' => $maxTries,
             'maxExceptions' => null,
