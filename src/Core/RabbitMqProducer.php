@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Queue;
 
 class RabbitMqProducer
 {
-    public static function push(Message $message, ExchangeInterface $exchange = null): void
+    public static function push(Message $message, ExchangeInterface $exchange = null, string $queue = null): void
     {
         $payload = $message->getPayload();
         $exchangeConf = [];
@@ -18,6 +18,8 @@ class RabbitMqProducer
             ];
             $payload = array_merge($payload, $exchangeConf);
         }
-        Queue::connection('rabbitmq')->pushRaw(json_encode($payload), env('RABBITMQ_QUEUE'), $exchangeConf);
+
+        $queue = $queue ?? env('RABBITMQ_QUEUE');
+        Queue::connection('rabbitmq')->pushRaw(json_encode($payload), $queue, $exchangeConf);
     }
 }
