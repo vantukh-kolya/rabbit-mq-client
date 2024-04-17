@@ -7,6 +7,7 @@ Add connection to config/queue.php:
             'driver' => 'rabbitmq',
             'queue' => env('RABBITMQ_QUEUE', 'default'),
             'connection' => 'default',
+            'worker' => env('RABBITMQ_WORKER', 'horizon'),
             'hosts' => [
                 [
                     'host' => env('RABBITMQ_HOST', 'rabbitmq'),
@@ -29,12 +30,12 @@ Add connection to config/queue.php:
 ]
 ```
 
-`'job' => \App\RabbitMq\JobHandler::class` class that response for processing incoming messages 
+`'job' => \App\RabbitMq\JobHandler::class` class that response for consuming messages 
 
 Example of `App\RabbitMq\JobHandler` class
 
 ```
-use App\RabbitMq\MessageTypes\MessageTypeFactory;
+use App\RabbitMq\Consumers\ConsumedMessageTypeFactory;
 use Illuminate\Queue\Jobs\JobName;
 use VantukhKolya\RabbitMqClient\Queue\Jobs\RabbitMQJob;
 use Illuminate\Support\Facades\Log;
@@ -47,13 +48,15 @@ class JobHandler extends RabbitMQJob
         if (!empty($payload['job'])) {
             [$class, $method] = JobName::parse($payload['job']);
             ($this->instance = $this->resolve($class))->{$method}($this, $payload['data']);
-        } else if (!empty($payload['type'])) {
-            $messageType = MessageTypeFactory::create($payload['type']);
-            if ($messageType) {
-                $this->instance = $messageType;
-                $messageType->handle($this);
-            } else {
-                Log::error('Unknown message type.');
+        } else {
+            if (!empty($payload['msgType'])) {
+                $messageType = ConsumedMessageTypeFactory::create($payload['msgType']);
+                if ($messageType) {
+                    $this->instance = $messageType;
+                    $messageType->handle($this);
+                } else {
+                    Log::error('Unknown message type ' . $payload['msgType']);
+                }
             }
         }
         $this->delete();
@@ -73,9 +76,63 @@ class JobHandler extends RabbitMQJob
 }
 ```
 
+Configuration file 'rabbitmq_system.php' contains information about producers and consumers. Example:
+
+```
+use App\RabbitMq\Producers\ProducedMessageTypeCode;
+use App\RabbitMq\ConsumedMessageTypeCode;
+use App\RabbitMq\Consumers\ProductQuestionReadByManager;
+use App\RabbitMq\Consumers\ProductQuestionAnswerReadByManager;
+
+return [
+    'producers' => [
+        ProducedMessageTypeCode::Product_viewed->value => [
+            'exchange' => [
+                'name' => 'products.product.viewed.direct_exchange',
+                'type' => 'direct',
+                'routing_key' => 'product.viewed'
+            ],
+            'horizon_queue' => null
+        ]
+    ],
+    'consumers' => [
+        ConsumedMessageTypeCode::Product_question_read_by_manager->value => [
+            'handler' => new ProductQuestionReadByManager()
+        ],
+        ConsumedMessageTypeCode::Product_question_answer_read_by_manager->value => [
+            'handler' => new ProductQuestionAnswerReadByManager()
+        ],
+    ]
+];
+```
+
+App\RabbitMq\Producers\ProducedMessageTypeCode - produced messages codes 
+
+```
+namespace App\DomainCore\RabbitMq\Producers;
+
+enum ProducedMessageTypeCode: string
+{
+    case Product_viewed = 'product_viewed';
+}
+```
+
+App\RabbitMq\ConsumedMessageTypeCode - consumed messages codes
+
+```
+namespace App\DomainCore\RabbitMq;
+
+enum ConsumedMessageTypeCode: string
+{
+    case Product_question_read_by_manager = 'product_question_read_by_manager';
+    case Product_question_answer_read_by_manager = 'product_question_answer_read_by_manager';
+}
+
+```
+
 ## Usage between different servers
 
-To consume a message you should create a Message class that implements `VantukhKolya\RabbitMqClient\Core\MessageTypeInterface` interface.
+To consume a message you should create a consumer class that implements `VantukhKolya\RabbitMqClient\Core\MessageTypeInterface` interface.
 For example:
 ```
 use VantukhKolya\RabbitMqClient\Core\MessageTypeInterface;
@@ -97,55 +154,21 @@ class ProductViewed implements MessageTypeInterface
 }
 
 ```
-Listen for new messages via supervisor process
-```
-[program:process-viewed-product-rabbitmq-worker]
-process_name=%(program_name)s_%(process_num)02d
-command=php %(ENV_SITE_PATH)s/artisan queue:work rabbitmq  --queue=product_viewed_queue
-autostart=true
-autorestart=true
-stopasgroup=true
-killasgroup=true
-user=admin
-numprocs=1
-redirect_stderr=true
-stdout_logfile=%(ENV_SITE_PATH)s/storage/logs/worker.log
-stopwaitsecs=3600
-```
 
-To send a message into exchange you should create a Exchange class that implements `VantukhKolya\RabbitMqClient\Core\ExchangeInterface` interface.
-For example:
-```
-use VantukhKolya\RabbitMqClient\Core\ExchangeInterface;
-
-class SeoCategoryUpdateDirect implements ExchangeInterface
-{
-    public function getExchangeName(): string
-    {
-        return 'seo_category_update_direct';
-    }
-
-    public function getExchangeType(): string
-    {
-        return 'direct';
-    }
-
-    public function getExchangeRoutingKey(): string
-    {
-        return 'seo_category_update';
-    }
-
-}
+Produce message to RabbitMq:
 
 ```
-
-Push message to RabbitMq:
-
-```
+use App\DomainCore\RabbitMq\Producers\ProducedMessageTypeCode;
+use App\DomainCore\RabbitMq\Producers\ProducerInfo;
+use App\Events\ProductViewed;
 use VantukhKolya\RabbitMqClient\Core\Message;
 use VantukhKolya\RabbitMqClient\Core\RabbitMqProducer;
 
-$rabbitMqMsq = new Message('update_categories_seo_tags');
-RabbitMqProducer::push($rabbitMqMsq, new SeoCategoryUpdateDirect());
+$rabbitMqMsq = new Message(
+    ProducedMessageTypeCode::Product_viewed->value,
+    ['product_code' => $event->productCode]
+);
+$producerInfo = ProducerInfo::get(ProducedMessageTypeCode::Product_viewed);
+RabbitMqProducer::push($rabbitMqMsq, $producerInfo['exchange'], $producerInfo['horizon_queue'])
 ```
 
