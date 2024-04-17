@@ -57,7 +57,7 @@ class Message
 
     public function getType(): string
     {
-        return $this->type;
+        return $this->msgType;
     }
 
     public function getData(): array
