@@ -8,7 +8,7 @@
   "require-dev": {
     "laravel/framework": "^9.0|^10.0",
     "webpatser/laravel-uuid": "4.0.2",
-    "php-amqplib/php-amqplib": "3.2",
+    "php-amqplib/php-amqplib": "3.7.0",
     "laravel/horizon": "5.23.2",
     "phpunit/phpunit": "^10.5"
   },
