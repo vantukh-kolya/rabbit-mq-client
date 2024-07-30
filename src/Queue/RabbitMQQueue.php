@@ -776,7 +776,7 @@ class RabbitMQQueue extends Queue implements QueueContract, RabbitMQQueueContrac
     /**
      * @throws Exception
      */
-    protected function reconnect(): void
+    public function reconnect(): void
     {
         // Reconnects using the original connection settings.
         $this->getConnection()->reconnect();

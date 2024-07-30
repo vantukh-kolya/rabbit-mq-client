@@ -22,4 +22,15 @@ class RabbitMqProducer
         $queue = $queue ?? env('RABBITMQ_QUEUE');
         Queue::connection('rabbitmq')->pushRaw(json_encode($payload), $queue, $exchangeConf);
     }
+
+    public static function pushWithNewConn(
+        Message $message,
+        ExchangeInterface $exchange = null,
+        string $queue = null
+    ): void {
+        $rabbitmqQueue = Queue::connection('rabbitmq');
+        $rabbitmqQueue->reconnect();
+        self::push($message, $exchange, $queue);
+        $rabbitmqQueue->close();
+    }
 }
