@@ -48,7 +48,11 @@ class RabbitMQJob extends Job implements JobContract
         $this->message = $message;
         $this->connectionName = $connectionName;
         $this->queue = $queue;
-        $this->decoded = $this->payload();
+        try {
+            $this->decoded = $this->payload();
+        } catch (\Throwable $e) {
+            $this->markAsFailed();
+        }
     }
 
     /**
